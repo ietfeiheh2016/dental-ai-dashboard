@@ -24,7 +24,7 @@ This dashboard allows you to manage multiple dental practice clients and their A
 
 ## 🚀 Live Demo
 
-Visit: [https://your-username.github.io/dental-ai-dashboard](https://your-username.github.io/dental-ai-dashboard)
+Visit: [https://ietfeiheh2016.github.io/dental-ai-dashboard/](https://ietfeiheh2016.github.io/dental-ai-dashboard/)
 
 ## 💰 Business Model
 
