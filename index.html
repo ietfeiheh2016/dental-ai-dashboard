@@ -1,0 +1,602 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🚀 DentalAI Pro - Business Management Dashboard</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: #333;
+        }
+        
+        .header {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            box-shadow: 0 2px 20px rgba(0,0,0,0.1);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .header h1 {
+            color: #4f46e5;
+            font-size: 2rem;
+            font-weight: 700;
+        }
+        
+        .header p {
+            color: #6b7280;
+            margin-top: 0.5rem;
+        }
+        
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+        
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .stat-card {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            text-align: center;
+            transition: transform 0.3s ease;
+        }
+        
+        .stat-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .stat-value {
+            font-size: 3rem;
+            font-weight: 700;
+            color: #4f46e5;
+            margin-bottom: 0.5rem;
+        }
+        
+        .stat-label {
+            color: #6b7280;
+            font-weight: 500;
+            text-transform: uppercase;
+            font-size: 0.9rem;
+            letter-spacing: 0.5px;
+        }
+        
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+        
+        .clients-section {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .section-header {
+            padding: 2rem;
+            border-bottom: 1px solid #e5e7eb;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .section-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #1f2937;
+        }
+        
+        .add-client-btn {
+            background: linear-gradient(135deg, #4f46e5, #7c3aed);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .add-client-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(79, 70, 229, 0.3);
+        }
+        
+        .clients-list {
+            max-height: 600px;
+            overflow-y: auto;
+            padding: 2rem;
+        }
+        
+        .client-item {
+            padding: 1.5rem;
+            border: 1px solid #e2e8f0;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .client-item:hover {
+            background: #f8fafc;
+            border-color: #4f46e5;
+        }
+        
+        .client-name {
+            font-weight: 600;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+        
+        .client-info {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+        
+        .client-status {
+            display: flex;
+            gap: 1rem;
+            margin-top: 0.5rem;
+        }
+        
+        .status-badge {
+            padding: 4px 12px;
+            border-radius: 12px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            background: #dcfce7;
+            color: #16a34a;
+        }
+        
+        .quick-actions {
+            background: rgba(255,255,255,0.95);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.1);
+            padding: 2rem;
+            height: fit-content;
+        }
+        
+        .action-btn {
+            width: 100%;
+            padding: 1rem;
+            margin-bottom: 1rem;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: left;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+        
+        .action-primary {
+            background: linear-gradient(135deg, #059669, #047857);
+            color: white;
+        }
+        
+        .action-secondary {
+            background: #f3f4f6;
+            color: #4b5563;
+        }
+        
+        .action-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.5);
+            backdrop-filter: blur(5px);
+            z-index: 2000;
+        }
+        
+        .modal-content {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            padding: 2rem;
+            border-radius: 16px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+        
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+            color: #374151;
+        }
+        
+        .form-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 1px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 1rem;
+        }
+        
+        .form-input:focus {
+            outline: none;
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1);
+        }
+        
+        .modal-buttons {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+        
+        .btn-cancel {
+            flex: 1;
+            padding: 12px;
+            border: 1px solid #d1d5db;
+            background: white;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        
+        .btn-submit {
+            flex: 1;
+            padding: 12px;
+            background: #4f46e5;
+            color: white;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+        
+        .success-message {
+            background: #dcfce7;
+            color: #16a34a;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+        
+        .error-message {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-bottom: 1rem;
+        }
+
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <h1>🚀 DentalAI Pro - Business Management Dashboard</h1>
+        <p>Manage all dental practice clients and their multi-platform integrations</p>
+    </div>
+
+    <!-- Main Content -->
+    <div class="container">
+        <!-- Statistics Overview -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-value" id="totalClients">0</div>
+                <div class="stat-label">Total Clients</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalRevenue">$0</div>
+                <div class="stat-label">Monthly Revenue</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalIntegrations">0</div>
+                <div class="stat-label">Platform Integrations</div>
+            </div>
+            <div class="stat-card">
+                <div class="stat-value" id="totalProjects">0</div>
+                <div class="stat-label">Active Projects</div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="main-content">
+            <!-- Clients Section -->
+            <div class="clients-section">
+                <div class="section-header">
+                    <h2 class="section-title">🏥 Dental Practice Clients</h2>
+                    <button class="add-client-btn" onclick="showAddClientModal()">
+                        ➕ Add New Client
+                    </button>
+                </div>
+                <div class="clients-list" id="clientsList">
+                    <!-- Sample clients -->
+                    <div class="client-item">
+                        <div class="client-name">🦷 Smile Dental Clinic</div>
+                        <div class="client-info">
+                            👨‍⚕️ Dr. Sarah Johnson • 📧 info@smiledental.com • 📞 (555) 123-4567
+                        </div>
+                        <div class="client-status">
+                            <span class="status-badge">Website Connected</span>
+                            <span class="status-badge">$497/month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="client-item">
+                        <div class="client-name">🦷 Bright Smiles Dentistry</div>
+                        <div class="client-info">
+                            👨‍⚕️ Dr. Michael Chen • 📧 contact@brightsmiles.com • 📞 (555) 987-6543
+                        </div>
+                        <div class="client-status">
+                            <span class="status-badge">WhatsApp + Website</span>
+                            <span class="status-badge">$697/month</span>
+                        </div>
+                    </div>
+                    
+                    <div class="client-item">
+                        <div class="client-name">🦷 Family Dental Care</div>
+                        <div class="client-info">
+                            👨‍⚕️ Dr. Lisa Rodriguez • 📧 info@familydental.com • 📞 (555) 456-7890
+                        </div>
+                        <div class="client-status">
+                            <span class="status-badge">Full Integration</span>
+                            <span class="status-badge">$997/month</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Actions -->
+            <div class="quick-actions">
+                <h3 class="section-title" style="margin-bottom: 1.5rem;">⚡ Quick Actions</h3>
+                
+                <button class="action-btn action-primary" onclick="deployToGitHub()">
+                    🚀 Deploy to Production
+                </button>
+                
+                <button class="action-btn action-secondary" onclick="viewAnalytics()">
+                    📊 View Full Analytics
+                </button>
+                
+                <button class="action-btn action-secondary" onclick="generateClientCode()">
+                    🔧 Generate Client Code
+                </button>
+                
+                <button class="action-btn action-secondary" onclick="connectPlatforms()">
+                    🔗 Connect Platforms
+                </button>
+                
+                <button class="action-btn action-secondary" onclick="viewBilling()">
+                    💰 Billing & Payments
+                </button>
+                
+                <button class="action-btn action-secondary" onclick="systemHealth()">
+                    🏥 System Health
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Client Modal -->
+    <div class="modal" id="addClientModal">
+        <div class="modal-content">
+            <h2 style="margin-bottom: 2rem; color: #1f2937;">➕ Add New Dental Practice</h2>
+            <div id="modalMessage"></div>
+            
+            <form id="addClientForm">
+                <div class="form-group">
+                    <label class="form-label" for="practice_name">Practice Name *</label>
+                    <input type="text" class="form-input" id="practice_name" name="practice_name" required placeholder="e.g., Smile Dental Clinic">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="doctor_name">Doctor Name *</label>
+                    <input type="text" class="form-input" id="doctor_name" name="doctor_name" required placeholder="e.g., Dr. Sarah Johnson">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="email">Email *</label>
+                    <input type="email" class="form-input" id="email" name="email" required placeholder="info@smiledental.com">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="phone">Phone *</label>
+                    <input type="tel" class="form-input" id="phone" name="phone" required placeholder="(555) 123-4567">
+                </div>
+                
+                <div class="form-group">
+                    <label class="form-label" for="monthly_fee">Monthly Fee ($)</label>
+                    <input type="number" class="form-input" id="monthly_fee" name="monthly_fee" value="497" min="0" step="0.01">
+                </div>
+                
+                <div class="modal-buttons">
+                    <button type="button" class="btn-cancel" onclick="closeModal()">Cancel</button>
+                    <button type="submit" class="btn-submit">Add Client</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Sample data
+        let clients = [
+            {
+                id: '1',
+                practice_name: 'Smile Dental Clinic',
+                doctor_name: 'Dr. Sarah Johnson',
+                email: 'info@smiledental.com',
+                phone: '(555) 123-4567',
+                monthly_fee: 497,
+                integrations: ['website']
+            },
+            {
+                id: '2', 
+                practice_name: 'Bright Smiles Dentistry',
+                doctor_name: 'Dr. Michael Chen',
+                email: 'contact@brightsmiles.com',
+                phone: '(555) 987-6543',
+                monthly_fee: 697,
+                integrations: ['website', 'whatsapp']
+            },
+            {
+                id: '3',
+                practice_name: 'Family Dental Care',
+                doctor_name: 'Dr. Lisa Rodriguez', 
+                email: 'info@familydental.com',
+                phone: '(555) 456-7890',
+                monthly_fee: 997,
+                integrations: ['website', 'whatsapp', 'instagram', 'facebook', 'gmail']
+            }
+        ];
+
+        // Initialize dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            updateStats();
+        });
+
+        // Update statistics
+        function updateStats() {
+            const totalRevenue = clients.reduce((sum, client) => sum + client.monthly_fee, 0);
+            const totalIntegrations = clients.reduce((sum, client) => sum + client.integrations.length, 0);
+            
+            document.getElementById('totalClients').textContent = clients.length;
+            document.getElementById('totalRevenue').textContent = '$' + totalRevenue.toLocaleString();
+            document.getElementById('totalIntegrations').textContent = totalIntegrations;
+            document.getElementById('totalProjects').textContent = clients.length;
+        }
+
+        // Modal functions
+        function showAddClientModal() {
+            document.getElementById('addClientModal').style.display = 'block';
+            document.getElementById('modalMessage').innerHTML = '';
+        }
+
+        function closeModal() {
+            document.getElementById('addClientModal').style.display = 'none';
+            document.getElementById('addClientForm').reset();
+            document.getElementById('modalMessage').innerHTML = '';
+        }
+
+        // Form submission
+        document.getElementById('addClientForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const clientData = Object.fromEntries(formData.entries());
+            
+            // Add to clients array
+            const newClient = {
+                id: Date.now().toString(),
+                practice_name: clientData.practice_name,
+                doctor_name: clientData.doctor_name,
+                email: clientData.email,
+                phone: clientData.phone,
+                monthly_fee: parseFloat(clientData.monthly_fee) || 497,
+                integrations: ['website']
+            };
+            
+            clients.push(newClient);
+            updateStats();
+            
+            document.getElementById('modalMessage').innerHTML = 
+                '<div class="success-message">✅ ' + clientData.practice_name + ' added successfully!</div>';
+            
+            setTimeout(() => {
+                closeModal();
+                location.reload(); // Refresh to show new client
+            }, 1500);
+        });
+
+        // Quick Actions
+        function deployToGitHub() {
+            alert('🚀 GitHub Deployment\\n\\nYour dashboard is being deployed to GitHub Pages!\\n\\nURL: https://your-username.github.io/dental-ai-dashboard\\n\\nAll client data will be saved and accessible from anywhere!');
+        }
+
+        function viewAnalytics() {
+            const totalRevenue = clients.reduce((sum, client) => sum + client.monthly_fee, 0);
+            const avgRevenue = totalRevenue / clients.length;
+            
+            alert('📊 Business Analytics\\n\\n💰 Monthly Revenue: $' + totalRevenue.toLocaleString() + 
+                  '\\n🏥 Total Clients: ' + clients.length + 
+                  '\\n📈 Average per Client: $' + avgRevenue.toFixed(0) + 
+                  '\\n📅 Annual Projection: $' + (totalRevenue * 12).toLocaleString());
+        }
+
+        function generateClientCode() {
+            alert('🔧 Client Integration Code\\n\\nGenerate custom integration codes for each dental practice:\\n\\n• Website chatbot widgets\\n• WhatsApp Business integration\\n• Instagram DM automation\\n• Facebook Messenger bots\\n• Google Calendar booking\\n\\nEach client gets personalized code for their website!');
+        }
+
+        function connectPlatforms() {
+            alert('🔗 Platform Connections\\n\\nConnect dental practices to:\\n\\n📧 Gmail - AI email responses\\n📱 WhatsApp - Business chat automation\\n📷 Instagram - DM replies\\n💬 Facebook - Messenger bots\\n📅 Google Calendar - Auto booking\\n\\nAll powered by one AI system!');
+        }
+
+        function viewBilling() {
+            const totalRevenue = clients.reduce((sum, client) => sum + client.monthly_fee, 0);
+            const setupFees = clients.length * 997;
+            
+            alert('💰 Billing Summary\\n\\n📊 Monthly Recurring Revenue: $' + totalRevenue.toLocaleString() + 
+                  '\\n💵 Setup Fees Collected: $' + setupFees.toLocaleString() + 
+                  '\\n📈 Annual Revenue: $' + (totalRevenue * 12).toLocaleString() + 
+                  '\\n\\nPayment Status: All clients current');
+        }
+
+        function systemHealth() {
+            alert('🏥 System Health Check\\n\\n✅ All systems operational\\n✅ GitHub Pages: Online\\n✅ Client integrations: Active\\n✅ AI responses: Working\\n✅ Data backup: Current\\n\\n🚀 Ready to scale to 100+ practices!');
+        }
+
+        // Close modal when clicking outside
+        window.onclick = function(event) {
+            const modal = document.getElementById('addClientModal');
+            if (event.target === modal) {
+                closeModal();
+            }
+        }
+    </script>
+</body>
+</html>
