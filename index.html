@@ -351,19 +351,19 @@
         <!-- Statistics Overview -->
         <div class="stats-grid">
             <div class="stat-card">
-                <div class="stat-value" id="totalClients">3</div>
+                <div class="stat-value" id="totalClients">0</div>
                 <div class="stat-label">Total Clients</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="totalRevenue">$2,191</div>
+                <div class="stat-value" id="totalRevenue">$0</div>
                 <div class="stat-label">Monthly Revenue</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="totalIntegrations">9</div>
+                <div class="stat-value" id="totalIntegrations">0</div>
                 <div class="stat-label">Platform Integrations</div>
             </div>
             <div class="stat-card">
-                <div class="stat-value" id="totalProjects">3</div>
+                <div class="stat-value" id="totalProjects">0</div>
                 <div class="stat-label">Active Projects</div>
             </div>
         </div>
@@ -379,39 +379,7 @@
                     </button>
                 </div>
                 <div class="clients-list" id="clientsList">
-                    <!-- Sample clients -->
-                    <div class="client-item" onclick="viewClientDetails('1')">
-                        <div class="client-name">🦷 Smile Dental Clinic</div>
-                        <div class="client-info">
-                            👨‍⚕️ Dr. Sarah Johnson • 📧 info@smiledental.com • 📞 (555) 123-4567
-                        </div>
-                        <div class="client-status">
-                            <span class="status-badge">Website Connected</span>
-                            <span class="status-badge">$497/month</span>
-                        </div>
-                    </div>
-                    
-                    <div class="client-item" onclick="viewClientDetails('2')">
-                        <div class="client-name">🦷 Bright Smiles Dentistry</div>
-                        <div class="client-info">
-                            👨‍⚕️ Dr. Michael Chen • 📧 contact@brightsmiles.com • 📞 (555) 987-6543
-                        </div>
-                        <div class="client-status">
-                            <span class="status-badge">WhatsApp + Website</span>
-                            <span class="status-badge">$697/month</span>
-                        </div>
-                    </div>
-                    
-                    <div class="client-item" onclick="viewClientDetails('3')">
-                        <div class="client-name">🦷 Family Dental Care</div>
-                        <div class="client-info">
-                            👨‍⚕️ Dr. Lisa Rodriguez • 📧 info@familydental.com • 📞 (555) 456-7890
-                        </div>
-                        <div class="client-status">
-                            <span class="status-badge">Full Integration</span>
-                            <span class="status-badge">$997/month</span>
-                        </div>
-                    </div>
+                    <!-- Clients will be dynamically loaded here -->
                 </div>
             </div>
 
@@ -504,8 +472,13 @@
         
         function toggleDebug() {
             const panel = document.getElementById('debugPanel');
-            panel.style.display = panel.style.display === 'none' ? 'block' : 'none';
-            debug('Debug panel toggled');
+            if (panel.style.display === 'none' || panel.style.display === '') {
+                panel.style.display = 'block';
+                debug('Debug panel opened');
+            } else {
+                panel.style.display = 'none';
+                debug('Debug panel closed');
+            }
         }
         
         function clearDebug() {
@@ -513,36 +486,8 @@
             document.getElementById('debugContent').innerHTML = 'Debug cleared...';
         }
 
-        // Sample data
-        let clients = [
-            {
-                id: '1',
-                practice_name: 'Smile Dental Clinic',
-                doctor_name: 'Dr. Sarah Johnson',
-                email: 'info@smiledental.com',
-                phone: '(555) 123-4567',
-                monthly_fee: 497,
-                integrations: ['website']
-            },
-            {
-                id: '2', 
-                practice_name: 'Bright Smiles Dentistry',
-                doctor_name: 'Dr. Michael Chen',
-                email: 'contact@brightsmiles.com',
-                phone: '(555) 987-6543',
-                monthly_fee: 697,
-                integrations: ['website', 'whatsapp']
-            },
-            {
-                id: '3',
-                practice_name: 'Family Dental Care',
-                doctor_name: 'Dr. Lisa Rodriguez', 
-                email: 'info@familydental.com',
-                phone: '(555) 456-7890',
-                monthly_fee: 997,
-                integrations: ['website', 'whatsapp', 'instagram', 'facebook', 'gmail']
-            }
-        ];
+        // Empty clients array - user will add their own
+        let clients = [];
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
@@ -561,6 +506,37 @@
             document.getElementById('totalIntegrations').textContent = totalIntegrations;
             document.getElementById('totalProjects').textContent = clients.length;
             debug('Statistics updated successfully');
+            
+            // Update client list display
+            updateClientsList();
+        }
+
+        // Update clients list display
+        function updateClientsList() {
+            const clientsList = document.getElementById('clientsList');
+            
+            if (clients.length === 0) {
+                clientsList.innerHTML = `
+                    <div style="text-align: center; padding: 3rem; color: #6b7280;">
+                        <h3 style="margin-bottom: 1rem;">🏥 No clients yet</h3>
+                        <p>Click "Add New Client" to add your first dental practice!</p>
+                        <p style="margin-top: 1rem; font-size: 0.9rem;">This dashboard will manage all your dental AI clients</p>
+                    </div>
+                `;
+            } else {
+                clientsList.innerHTML = clients.map(client => `
+                    <div class="client-item" onclick="viewClientDetails('${client.id}')">
+                        <div class="client-name">🦷 ${client.practice_name}</div>
+                        <div class="client-info">
+                            👨‍⚕️ ${client.doctor_name} • 📧 ${client.email} • 📞 ${client.phone}
+                        </div>
+                        <div class="client-status">
+                            <span class="status-badge">${client.integrations.length} platform(s) connected</span>
+                            <span class="status-badge">$${client.monthly_fee}/month</span>
+                        </div>
+                    </div>
+                `).join('');
+            }
         }
 
         // Modal functions
@@ -605,7 +581,7 @@
             
             setTimeout(() => {
                 closeModal();
-                location.reload(); // Refresh to show new client
+                // No need to reload - updateStats() already updates the display
             }, 1500);
         });
 
@@ -630,12 +606,16 @@
         function viewAnalytics() {
             debug('View analytics clicked');
             const totalRevenue = clients.reduce((sum, client) => sum + client.monthly_fee, 0);
-            const avgRevenue = totalRevenue / clients.length;
+            const avgRevenue = clients.length > 0 ? totalRevenue / clients.length : 0;
             
-            alert('📊 Business Analytics\n\n💰 Monthly Revenue: $' + totalRevenue.toLocaleString() + 
-                  '\n🏥 Total Clients: ' + clients.length + 
-                  '\n📈 Average per Client: $' + avgRevenue.toFixed(0) + 
-                  '\n📅 Annual Projection: $' + (totalRevenue * 12).toLocaleString());
+            if (clients.length === 0) {
+                alert('📊 Business Analytics\n\n💰 Monthly Revenue: $0\n🏥 Total Clients: 0\n📈 Average per Client: $0\n📅 Annual Projection: $0\n\n💡 Add your first dental practice client to start tracking revenue!');
+            } else {
+                alert('📊 Business Analytics\n\n💰 Monthly Revenue: $' + totalRevenue.toLocaleString() + 
+                      '\n🏥 Total Clients: ' + clients.length + 
+                      '\n📈 Average per Client: $' + avgRevenue.toFixed(0) + 
+                      '\n📅 Annual Projection: $' + (totalRevenue * 12).toLocaleString());
+            }
         }
 
         function generateClientCode() {
@@ -653,10 +633,15 @@
             const totalRevenue = clients.reduce((sum, client) => sum + client.monthly_fee, 0);
             const setupFees = clients.length * 997;
             
-            alert('💰 Billing Summary\n\n📊 Monthly Recurring Revenue: $' + totalRevenue.toLocaleString() + 
-                  '\n💵 Setup Fees Collected: $' + setupFees.toLocaleString() + 
-                  '\n📈 Annual Revenue: $' + (totalRevenue * 12).toLocaleString() + 
-                  '\n\nPayment Status: All clients current');
+            if (clients.length === 0) {
+                alert('💰 Billing Summary\n\n📊 Monthly Recurring Revenue: $0\n💵 Setup Fees Collected: $0\n📈 Annual Revenue: $0\n🏥 Active Clients: 0\n\n💡 Add dental practices to start generating revenue!\n\n💰 Pricing Model:\n• Setup Fee: $997 per practice\n• Monthly Fee: $497+ per practice');
+            } else {
+                alert('💰 Billing Summary\n\n📊 Monthly Recurring Revenue: $' + totalRevenue.toLocaleString() + 
+                      '\n💵 Setup Fees Collected: $' + setupFees.toLocaleString() + 
+                      '\n📈 Annual Revenue: $' + (totalRevenue * 12).toLocaleString() + 
+                      '\n🏥 Active Clients: ' + clients.length + 
+                      '\n\nPayment Status: All clients current');
+            }
         }
 
         function systemHealth() {
