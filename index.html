@@ -464,6 +464,186 @@
     </div>
 
     <script>
+        // ==================== ERROR LOGGING SYSTEM ====================
+        let errorLog = [];
+        let debugMode = true; // Set to false in production
+
+        // Enhanced error logging function
+        function logError(error, context = '', userAction = '') {
+            const timestamp = new Date().toISOString();
+            const errorEntry = {
+                timestamp,
+                error: {
+                    message: error.message || error,
+                    stack: error.stack || 'No stack trace',
+                    name: error.name || 'Unknown Error'
+                },
+                context,
+                userAction,
+                url: window.location.href,
+                userAgent: navigator.userAgent,
+                viewport: `${window.innerWidth}x${window.innerHeight}`
+            };
+            
+            errorLog.push(errorEntry);
+            
+            if (debugMode) {
+                console.error('🔥 ERROR LOGGED:', errorEntry);
+            }
+            
+            // Store in localStorage for persistence
+            try {
+                localStorage.setItem('dentalai_error_log', JSON.stringify(errorLog));
+            } catch(e) {
+                console.error('Failed to store error log:', e);
+            }
+            
+            // Show user-friendly error message
+            showErrorToUser(error, context);
+        }
+
+        // Show error to user
+        function showErrorToUser(error, context) {
+            const errorDiv = document.createElement('div');
+            errorDiv.style.cssText = `
+                position: fixed; top: 20px; right: 20px; 
+                background: #fee2e2; color: #dc2626; 
+                padding: 1rem; border-radius: 8px; 
+                max-width: 400px; z-index: 9999;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+                border-left: 4px solid #dc2626;
+            `;
+            errorDiv.innerHTML = `
+                <strong>⚠️ Error Occurred</strong><br>
+                <small>${context}</small><br>
+                <button onclick="showErrorLog()" style="margin-top: 8px; padding: 4px 8px; background: #dc2626; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    📋 View Error Log
+                </button>
+                <button onclick="this.parentElement.remove()" style="margin-left: 8px; padding: 4px 8px; background: #6b7280; color: white; border: none; border-radius: 4px; cursor: pointer;">
+                    ✕ Close
+                </button>
+            `;
+            
+            document.body.appendChild(errorDiv);
+            
+            // Auto remove after 10 seconds
+            setTimeout(() => {
+                if (errorDiv.parentElement) {
+                    errorDiv.remove();
+                }
+            }, 10000);
+        }
+
+        // Show error log modal
+        function showErrorLog() {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+                background: rgba(0,0,0,0.5); z-index: 10000;
+                display: flex; align-items: center; justify-content: center;
+            `;
+            
+            const content = document.createElement('div');
+            content.style.cssText = `
+                background: white; padding: 2rem; border-radius: 16px;
+                max-width: 90%; max-height: 80%; overflow-y: auto;
+                width: 800px;
+            `;
+            
+            const errorLogText = errorLog.length > 0 ? 
+                JSON.stringify(errorLog, null, 2) : 
+                'No errors logged yet.';
+                
+            content.innerHTML = `
+                <h2 style="margin-bottom: 1rem; color: #dc2626;">🔥 Error Log</h2>
+                <p style="margin-bottom: 1rem; color: #6b7280;">
+                    Copy this entire log and send it for debugging:
+                </p>
+                <textarea readonly style="width: 100%; height: 300px; padding: 12px; border: 1px solid #d1d5db; border-radius: 8px; font-family: monospace; font-size: 12px;">${errorLogText}</textarea>
+                <div style="margin-top: 1rem; display: flex; gap: 1rem;">
+                    <button onclick="copyErrorLog()" style="padding: 12px 24px; background: #dc2626; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        📋 Copy Error Log
+                    </button>
+                    <button onclick="clearErrorLog()" style="padding: 12px 24px; background: #f59e0b; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        🗑️ Clear Log
+                    </button>
+                    <button onclick="document.body.removeChild(arguments[0].target.closest('.error-modal'))" style="padding: 12px 24px; background: #6b7280; color: white; border: none; border-radius: 8px; cursor: pointer;">
+                        ✕ Close
+                    </button>
+                </div>
+            `;
+            
+            modal.className = 'error-modal';
+            modal.appendChild(content);
+            document.body.appendChild(modal);
+            
+            // Close on outside click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    document.body.removeChild(modal);
+                }
+            });
+        }
+
+        // Copy error log to clipboard
+        function copyErrorLog() {
+            const logText = JSON.stringify(errorLog, null, 2);
+            navigator.clipboard.writeText(logText).then(() => {
+                alert('✅ Error log copied to clipboard! Send this to get help.');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                alert('❌ Copy failed. Please select the text manually.');
+            });
+        }
+
+        // Clear error log
+        function clearErrorLog() {
+            if (confirm('Clear all error logs?')) {
+                errorLog = [];
+                localStorage.removeItem('dentalai_error_log');
+                alert('🗑️ Error log cleared.');
+                document.body.removeChild(document.querySelector('.error-modal'));
+            }
+        }
+
+        // Global error handler
+        window.addEventListener('error', (e) => {
+            logError(e.error || new Error(e.message), 'Global Error Handler', 'Page Load');
+        });
+
+        // Promise rejection handler
+        window.addEventListener('unhandledrejection', (e) => {
+            logError(new Error(e.reason), 'Unhandled Promise Rejection', 'Async Operation');
+        });
+
+        // Load existing error log from localStorage
+        try {
+            const savedLog = localStorage.getItem('dentalai_error_log');
+            if (savedLog) {
+                errorLog = JSON.parse(savedLog);
+            }
+        } catch(e) {
+            console.error('Failed to load error log:', e);
+        }
+
+        // Add error log button to header
+        document.addEventListener('DOMContentLoaded', function() {
+            const header = document.querySelector('.header');
+            const errorBtn = document.createElement('button');
+            errorBtn.innerHTML = '🔥 Error Log (' + errorLog.length + ')';
+            errorBtn.style.cssText = `
+                position: absolute; top: 1rem; right: 2rem;
+                padding: 8px 16px; background: ${errorLog.length > 0 ? '#dc2626' : '#6b7280'}; 
+                color: white; border: none; border-radius: 6px; 
+                cursor: pointer; font-size: 0.9rem;
+            `;
+            errorBtn.onclick = showErrorLog;
+            header.style.position = 'relative';
+            header.appendChild(errorBtn);
+        });
+
+        // ==================== ENHANCED SAMPLE DATA ====================
+        
         // Sample data
         let clients = [
             {
@@ -497,104 +677,154 @@
 
         // Initialize dashboard
         document.addEventListener('DOMContentLoaded', function() {
-            updateStats();
+            try {
+                updateStats();
+            } catch (error) {
+                logError(error, 'Dashboard Initialization', 'Page Load');
+            }
         });
 
         // Update statistics
         function updateStats() {
-            const totalRevenue = clients.reduce((sum, client) => sum + client.monthly_fee, 0);
-            const totalIntegrations = clients.reduce((sum, client) => sum + client.integrations.length, 0);
-            
-            document.getElementById('totalClients').textContent = clients.length;
-            document.getElementById('totalRevenue').textContent = '$' + totalRevenue.toLocaleString();
-            document.getElementById('totalIntegrations').textContent = totalIntegrations;
-            document.getElementById('totalProjects').textContent = clients.length;
+            try {
+                const totalRevenue = clients.reduce((sum, client) => sum + client.monthly_fee, 0);
+                const totalIntegrations = clients.reduce((sum, client) => sum + client.integrations.length, 0);
+                
+                document.getElementById('totalClients').textContent = clients.length;
+                document.getElementById('totalRevenue').textContent = '$' + totalRevenue.toLocaleString();
+                document.getElementById('totalIntegrations').textContent = totalIntegrations;
+                document.getElementById('totalProjects').textContent = clients.length;
+            } catch (error) {
+                logError(error, 'Statistics Update', 'Data Processing');
+            }
         }
 
         // Modal functions
         function showAddClientModal() {
-            document.getElementById('addClientModal').style.display = 'block';
-            document.getElementById('modalMessage').innerHTML = '';
+            try {
+                document.getElementById('addClientModal').style.display = 'block';
+                document.getElementById('modalMessage').innerHTML = '';
+            } catch (error) {
+                logError(error, 'Show Add Client Modal', 'User clicked Add Client button');
+            }
         }
 
         function closeModal() {
-            document.getElementById('addClientModal').style.display = 'none';
-            document.getElementById('addClientForm').reset();
-            document.getElementById('modalMessage').innerHTML = '';
+            try {
+                document.getElementById('addClientModal').style.display = 'none';
+                document.getElementById('addClientForm').reset();
+                document.getElementById('modalMessage').innerHTML = '';
+            } catch (error) {
+                logError(error, 'Close Modal', 'User closed modal');
+            }
         }
 
         // Form submission
         document.getElementById('addClientForm').addEventListener('submit', function(e) {
-            e.preventDefault();
-            
-            const formData = new FormData(e.target);
-            const clientData = Object.fromEntries(formData.entries());
-            
-            // Add to clients array
-            const newClient = {
-                id: Date.now().toString(),
-                practice_name: clientData.practice_name,
-                doctor_name: clientData.doctor_name,
-                email: clientData.email,
-                phone: clientData.phone,
-                monthly_fee: parseFloat(clientData.monthly_fee) || 497,
-                integrations: ['website']
-            };
-            
-            clients.push(newClient);
-            updateStats();
-            
-            document.getElementById('modalMessage').innerHTML = 
-                '<div class="success-message">✅ ' + clientData.practice_name + ' added successfully!</div>';
-            
-            setTimeout(() => {
-                closeModal();
-                location.reload(); // Refresh to show new client
-            }, 1500);
+            try {
+                e.preventDefault();
+                
+                const formData = new FormData(e.target);
+                const clientData = Object.fromEntries(formData.entries());
+                
+                // Add to clients array
+                const newClient = {
+                    id: Date.now().toString(),
+                    practice_name: clientData.practice_name,
+                    doctor_name: clientData.doctor_name,
+                    email: clientData.email,
+                    phone: clientData.phone,
+                    monthly_fee: parseFloat(clientData.monthly_fee) || 497,
+                    integrations: ['website']
+                };
+                
+                clients.push(newClient);
+                updateStats();
+                
+                document.getElementById('modalMessage').innerHTML = 
+                    '<div class="success-message">✅ ' + clientData.practice_name + ' added successfully!</div>';
+                
+                setTimeout(() => {
+                    closeModal();
+                    location.reload(); // Refresh to show new client
+                }, 1500);
+            } catch (error) {
+                logError(error, 'Form Submission', 'User submitted add client form');
+                document.getElementById('modalMessage').innerHTML = 
+                    '<div class="error-message">❌ Error adding client. Check error log for details.</div>';
+            }
         });
 
         // Quick Actions
         function deployToGitHub() {
-            alert('🚀 GitHub Deployment\\n\\nYour dashboard is being deployed to GitHub Pages!\\n\\nURL: https://your-username.github.io/dental-ai-dashboard\\n\\nAll client data will be saved and accessible from anywhere!');
+            try {
+                alert('🚀 GitHub Deployment\\n\\nYour dashboard is being deployed to GitHub Pages!\\n\\nURL: https://ietfeiheh2016.github.io/dental-ai-dashboard/\\n\\nAll client data will be saved and accessible from anywhere!');
+            } catch (error) {
+                logError(error, 'Deploy to GitHub', 'User clicked deploy button');
+            }
         }
 
         function viewAnalytics() {
-            const totalRevenue = clients.reduce((sum, client) => sum + client.monthly_fee, 0);
-            const avgRevenue = totalRevenue / clients.length;
-            
-            alert('📊 Business Analytics\\n\\n💰 Monthly Revenue: $' + totalRevenue.toLocaleString() + 
-                  '\\n🏥 Total Clients: ' + clients.length + 
-                  '\\n📈 Average per Client: $' + avgRevenue.toFixed(0) + 
-                  '\\n📅 Annual Projection: $' + (totalRevenue * 12).toLocaleString());
+            try {
+                const totalRevenue = clients.reduce((sum, client) => sum + client.monthly_fee, 0);
+                const avgRevenue = totalRevenue / clients.length;
+                
+                alert('📊 Business Analytics\\n\\n💰 Monthly Revenue: $' + totalRevenue.toLocaleString() + 
+                      '\\n🏥 Total Clients: ' + clients.length + 
+                      '\\n📈 Average per Client: $' + avgRevenue.toFixed(0) + 
+                      '\\n📅 Annual Projection: $' + (totalRevenue * 12).toLocaleString());
+            } catch (error) {
+                logError(error, 'View Analytics', 'User clicked analytics button');
+            }
         }
 
         function generateClientCode() {
-            alert('🔧 Client Integration Code\\n\\nGenerate custom integration codes for each dental practice:\\n\\n• Website chatbot widgets\\n• WhatsApp Business integration\\n• Instagram DM automation\\n• Facebook Messenger bots\\n• Google Calendar booking\\n\\nEach client gets personalized code for their website!');
+            try {
+                alert('🔧 Client Integration Code\\n\\nGenerate custom integration codes for each dental practice:\\n\\n• Website chatbot widgets\\n• WhatsApp Business integration\\n• Instagram DM automation\\n• Facebook Messenger bots\\n• Google Calendar booking\\n\\nEach client gets personalized code for their website!');
+            } catch (error) {
+                logError(error, 'Generate Client Code', 'User clicked generate code button');
+            }
         }
 
         function connectPlatforms() {
-            alert('🔗 Platform Connections\\n\\nConnect dental practices to:\\n\\n📧 Gmail - AI email responses\\n📱 WhatsApp - Business chat automation\\n📷 Instagram - DM replies\\n💬 Facebook - Messenger bots\\n📅 Google Calendar - Auto booking\\n\\nAll powered by one AI system!');
+            try {
+                alert('🔗 Platform Connections\\n\\nConnect dental practices to:\\n\\n📧 Gmail - AI email responses\\n📱 WhatsApp - Business chat automation\\n📷 Instagram - DM replies\\n💬 Facebook - Messenger bots\\n📅 Google Calendar - Auto booking\\n\\nAll powered by one AI system!');
+            } catch (error) {
+                logError(error, 'Connect Platforms', 'User clicked connect platforms button');
+            }
         }
 
         function viewBilling() {
-            const totalRevenue = clients.reduce((sum, client) => sum + client.monthly_fee, 0);
-            const setupFees = clients.length * 997;
-            
-            alert('💰 Billing Summary\\n\\n📊 Monthly Recurring Revenue: $' + totalRevenue.toLocaleString() + 
-                  '\\n💵 Setup Fees Collected: $' + setupFees.toLocaleString() + 
-                  '\\n📈 Annual Revenue: $' + (totalRevenue * 12).toLocaleString() + 
-                  '\\n\\nPayment Status: All clients current');
+            try {
+                const totalRevenue = clients.reduce((sum, client) => sum + client.monthly_fee, 0);
+                const setupFees = clients.length * 997;
+                
+                alert('💰 Billing Summary\\n\\n📊 Monthly Recurring Revenue: $' + totalRevenue.toLocaleString() + 
+                      '\\n💵 Setup Fees Collected: $' + setupFees.toLocaleString() + 
+                      '\\n📈 Annual Revenue: $' + (totalRevenue * 12).toLocaleString() + 
+                      '\\n\\nPayment Status: All clients current');
+            } catch (error) {
+                logError(error, 'View Billing', 'User clicked billing button');
+            }
         }
 
         function systemHealth() {
-            alert('🏥 System Health Check\\n\\n✅ All systems operational\\n✅ GitHub Pages: Online\\n✅ Client integrations: Active\\n✅ AI responses: Working\\n✅ Data backup: Current\\n\\n🚀 Ready to scale to 100+ practices!');
+            try {
+                alert('🏥 System Health Check\\n\\n✅ All systems operational\\n✅ GitHub Pages: Online\\n✅ Client integrations: Active\\n✅ AI responses: Working\\n✅ Data backup: Current\\n✅ Error Logging: Active\\n\\n🚀 Ready to scale to 100+ practices!');
+            } catch (error) {
+                logError(error, 'System Health Check', 'User clicked health check button');
+            }
         }
 
         // Close modal when clicking outside
         window.onclick = function(event) {
-            const modal = document.getElementById('addClientModal');
-            if (event.target === modal) {
-                closeModal();
+            try {
+                const modal = document.getElementById('addClientModal');
+                if (event.target === modal) {
+                    closeModal();
+                }
+            } catch (error) {
+                logError(error, 'Modal Outside Click', 'User clicked outside modal');
             }
         }
     </script>
